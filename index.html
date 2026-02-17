@@ -1,1340 +1,1529 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Pico Norte — Badge Virtual</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%233ABAB4'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-weight='900' fill='%231B2A6B' font-family='sans-serif'%3EPN%3C/text%3E%3C/svg%3E">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@700;900&display=swap" rel="stylesheet">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-:root {
-  --teal:     #3ABAB4;
-  --navy:     #1B2A6B;
-  --bg:       #0f0f12;
-  --shadow-x: 0px;
-}
-
-body {
-  min-height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  font-family: 'Space Mono', monospace;
-  overflow: hidden;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Ambient glow */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background:
-    radial-gradient(ellipse 700px 480px at 50% 50%, rgba(58,186,180,.075) 0%, transparent 70%),
-    radial-gradient(ellipse 340px 260px at 12% 88%, rgba(27,42,107,.12) 0%, transparent 70%),
-    radial-gradient(ellipse 260px 200px at 88% 8%,  rgba(27,42,107,.09) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Dot grid */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(58,186,180,.032) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(58,186,180,.032) 1px, transparent 1px);
-  background-size: 28px 28px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ── INPUT PANEL ── */
-.input-panel {
-  position: relative;
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 22px;
-}
-
-.input-eyebrow {
-  font-size: 8px;
-  letter-spacing: 4px;
-  color: rgba(58,186,180,.4);
-  text-transform: uppercase;
-}
-
-.input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.input-wrap { position: relative; }
-
-.code-input {
-  background: rgba(255,255,255,.04);
-  border: 1.5px solid rgba(58,186,180,.28);
-  border-radius: 10px;
-  padding: 10px 36px 10px 16px;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: var(--teal);
-  text-transform: uppercase;
-  outline: none;
-  width: 196px;
-  transition: border-color .3s, box-shadow .3s, background .3s;
-}
-
-.code-input::placeholder {
-  color: rgba(58,186,180,.2);
-  letter-spacing: 1px;
-  font-size: 10px;
-  font-weight: 400;
-}
-
-.code-input:focus {
-  border-color: rgba(58,186,180,.65);
-  background: rgba(58,186,180,.05);
-  box-shadow: 0 0 0 3px rgba(58,186,180,.08), 0 0 18px rgba(58,186,180,.1);
-}
-
-.code-input.invalid {
-  border-color: rgba(220,80,80,.55);
-  color: #e05555;
-}
-
-.btn-clear {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  color: rgba(58,186,180,.3);
-  cursor: pointer;
-  font-size: 16px;
-  line-height: 1;
-  padding: 2px 3px;
-  display: none;
-  transition: color .2s;
-  font-family: monospace;
-}
-.btn-clear:hover { color: rgba(58,186,180,.8); }
-.btn-clear.show  { display: block; }
-
-.btn-gen {
-  background: rgba(58,186,180,.11);
-  border: 1.5px solid rgba(58,186,180,.35);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-family: 'Space Mono', monospace;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 2.5px;
-  color: var(--teal);
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all .25s;
-  white-space: nowrap;
-}
-.btn-gen:hover {
-  background: rgba(58,186,180,.22);
-  border-color: rgba(58,186,180,.65);
-  box-shadow: 0 0 14px rgba(58,186,180,.18);
-  transform: translateY(-1px);
-}
-.btn-gen:active { transform: scale(.97); }
-
-.btn-dl {
-  background: none;
-  border: 1.5px solid rgba(58,186,180,.22);
-  border-radius: 10px;
-  padding: 10px 11px;
-  color: rgba(58,186,180,.45);
-  cursor: pointer;
-  transition: all .25s;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-}
-.btn-dl:hover {
-  border-color: rgba(58,186,180,.6);
-  color: var(--teal);
-  box-shadow: 0 0 12px rgba(58,186,180,.14);
-  transform: translateY(-1px);
-}
-.btn-dl:active { transform: scale(.97); }
-
-.input-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 248px;
-}
-
-.char-count {
-  font-size: 9px;
-  color: rgba(255,255,255,.18);
-  letter-spacing: 1px;
-}
-
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.status-label {
-  font-size: 8px;
-  color: rgba(255,255,255,.2);
-  letter-spacing: 1px;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255,255,255,.1);
-  transition: background .3s, box-shadow .3s;
-}
-.status-dot.ok  { background: var(--teal); box-shadow: 0 0 7px rgba(58,186,180,.65); }
-.status-dot.err { background: #e05555;     box-shadow: 0 0 7px rgba(220,80,80,.5); }
-
-/* ── LANYARD ── */
-.lanyard-assembly {
-  position: relative;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: -2px;
-}
-
-.lanyard-cord {
-  width: 14px;
-  height: 56px;
-  border-radius: 3px;
-  background:
-    repeating-linear-gradient(
-      to bottom,
-      #1e3278 0px, #1e3278 2px,
-      #162660 2px, #162660 4px
-    ),
-    linear-gradient(to right, rgba(255,255,255,.06) 0%, transparent 40%, rgba(0,0,0,.2) 100%);
-  background-blend-mode: normal;
-  box-shadow:
-    inset 1px 0 0 rgba(255,255,255,.08),
-    inset -1px 0 0 rgba(0,0,0,.4),
-    0 2px 6px rgba(0,0,0,.4);
-}
-
-.lanyard-clip { width: 22px; height: 28px; }
-
-/* ── BADGE SCENE ── */
-.scene {
-  width: 268px;
-  height: 438px;
-  perspective: 1400px;
-  cursor: pointer;
-  position: relative;
-  z-index: 5;
-}
-
-/* Atmospheric glow behind badge */
-.scene::before {
-  content: '';
-  position: absolute;
-  inset: -40px -20px;
-  background: radial-gradient(
-    ellipse 85% 65% at 50% 46%,
-    rgba(58,186,180,.055) 0%,
-    rgba(27,42,107,.065) 42%,
-    transparent 68%
-  );
-  pointer-events: none;
-  z-index: -2;
-}
-
-/* Ground shadow — on scene, NOT on card.
-   filter on .card would break transform-style:preserve-3d,
-   making the back face invisible.
-   Two layers: tight contact shadow + wide ambient shadow.
-   --shadow-x shifts with tilt via JS. */
-.scene::after {
-  content: '';
-  position: absolute;
-  bottom: -20px;
-  left: 10%; right: 10%;
-  height: 56px;
-  background:
-    radial-gradient(ellipse 55% 40% at 50% 10%, rgba(0,0,0,.72) 0%, transparent 65%),
-    radial-gradient(ellipse 100% 80% at 50% 50%, rgba(0,0,0,.28) 0%, transparent 85%);
-  filter: blur(14px);
-  border-radius: 50%;
-  z-index: -1;
-  pointer-events: none;
-  transform: translateX(var(--shadow-x, 0px));
-  transition: transform .55s cubic-bezier(.25,.46,.45,.94);
-}
-
-.card {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d;
-  border-radius: 18px;
-  will-change: transform;
-  /* NO filter here — filter breaks preserve-3d and hides back face */
-}
-
-.face {
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  overflow: hidden;
-}
-
-/* ── FRONT FACE ── */
-.front {
-  background: linear-gradient(160deg,
-    #52D4CE 0%,
-    #3ABAB4 30%,
-    #2ba4a0 58%,
-    #1f8880 80%,
-    #186e68 100%
-  );
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  /* position: absolute + inset: 0 inherited from .face — do NOT add position:relative here */
-  /* Rim light — simulates card edge catching ambient light */
-  box-shadow:
-    inset 0  1px 0 rgba(255,255,255,.28),
-    inset 1px 0 0 rgba(255,255,255,.10),
-    inset -1px 0 0 rgba(0,0,0,.15),
-    inset 0 -1px 0 rgba(0,0,0,.20);
-}
-
-/* Diagonal gloss stripe */
-.front::before {
-  content: '';
-  position: absolute;
-  top: -40%; left: -20%;
-  width: 55%; height: 180%;
-  background: linear-gradient(to bottom right, rgba(255,255,255,.13) 0%, transparent 55%);
-  transform: rotate(-8deg);
-  pointer-events: none;
-}
-
-/* Holographic shimmer (JS-controlled) */
-.front-shimmer,
-.back-shimmer {
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .4s;
-  z-index: 2;
-}
-
-/* Holographic rainbow edge strip */
-.holo-strip {
-  position: absolute;
-  top: 50px; right: 0;
-  width: 7px; height: 100px;
-  background: linear-gradient(180deg,
-    hsl(320,100%,60%) 0%,
-    hsl(30,100%,60%)  16%,
-    hsl(60,100%,58%)  33%,
-    hsl(120,100%,48%) 50%,
-    hsl(200,100%,60%) 66%,
-    hsl(265,100%,65%) 83%,
-    hsl(320,100%,60%) 100%
-  );
-  opacity: .32;
-  border-radius: 5px 0 0 5px;
-  box-shadow: -2px 0 8px rgba(58,186,180,.15);
-  animation: holoShift 4s ease-in-out infinite alternate;
-}
-@keyframes holoShift {
-  0%   { opacity: .28; filter: hue-rotate(0deg); }
-  100% { opacity: .42; filter: hue-rotate(40deg); }
-}
-
-.front-top {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 18px 20px 0;
-  gap: 5px;
-}
-
-/* Lanyard hole */
-.badge-hole {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: #0c0c0f;
-  box-shadow:
-    inset 0 2px 5px rgba(0,0,0,.82),
-    inset 0 -1px 2px rgba(255,255,255,.07),
-    0 1px 3px rgba(0,0,0,.5);
-  position: relative;
-}
-.badge-eyelet {
-  position: absolute;
-  inset: 3px;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255,255,255,.07);
-}
-
-.badge-subtitle {
-  font-size: 7px;
-  color: rgba(27,42,107,.55);
-  letter-spacing: 2.5px;
-  text-transform: uppercase;
-}
-
-/* Logo */
-.brand {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 6px;
-}
-
-.stacked {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1px;
-  filter: drop-shadow(0 3px 8px rgba(27,42,107,.22));
-}
-
-.stacked-row { display: flex; align-items: center; gap: 6px; line-height: 1; }
-
-.stacked-row span {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: 60px;
-  letter-spacing: 6px;
-  color: var(--navy);
-  line-height: .88;
-}
-
-.brand-rule {
-  width: 88px; height: 1.5px;
-  background: linear-gradient(to right, transparent, rgba(27,42,107,.4), transparent);
-  margin: 3px 0;
-}
-
-.n-circle {
-  width: 54px; height: 54px;
-  border: 4px solid var(--navy);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,.18);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,.08), 0 2px 6px rgba(27,42,107,.18);
-}
-.n-circle span { font-size: 32px !important; letter-spacing: 0 !important; color: #fff !important; line-height: 1 !important; }
-
-/* Bottom section */
-.badge-bottom {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 20px 22px;
-  gap: 10px;
-}
-
-.compass-svg {
-  width: 62px; height: 62px;
-  opacity: .82;
-  filter: drop-shadow(0 2px 4px rgba(27,42,107,.28));
-}
-
-.badge-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.access-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(27,42,107,.17);
-  border: 1px solid rgba(27,42,107,.28);
-  border-radius: 20px;
-  padding: 3px 9px;
-}
-.access-led {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: var(--navy);
-  opacity: .7;
-}
-.access-text { font-size: 7px; color: rgba(27,42,107,.75); letter-spacing: 1.5px; }
-.badge-year  { font-size: 8px; color: rgba(27,42,107,.45); letter-spacing: 2px; }
-
-/* ── BACK FACE ── */
-.back {
-  background: #f2f2ef;
-  transform: rotateY(180deg);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  /* position: absolute + inset: 0 inherited from .face — do NOT add position:relative here */
-  /* Rim light on back face */
-  box-shadow:
-    inset 0  1px 0 rgba(255,255,255,.9),
-    inset 1px 0 0 rgba(255,255,255,.5),
-    inset -1px 0 0 rgba(0,0,0,.06),
-    inset 0 -1px 0 rgba(0,0,0,.08);
-}
-
-/* Fine grid texture */
-.back::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(0,0,0,.024) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,0,0,.024) 1px, transparent 1px);
-  background-size: 10px 10px;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Ghost watermark */
-.back-watermark {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
-}
-.back-watermark-txt {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: 95px;
-  letter-spacing: 4px;
-  color: var(--navy);
-  opacity: .038;
-  transform: rotate(-24deg);
-  white-space: nowrap;
-}
-
-.back-inner {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  height: 100%;
-}
-
-/* Header */
-.back-header {
-  background: linear-gradient(135deg, #1f3080 0%, #1B2A6B 50%, #141f52 100%);
-  padding: 13px 16px 11px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-radius: 18px 18px 0 0;
-  position: relative;
-  overflow: hidden;
-}
-/* Teal accent bar on left edge */
-.back-header::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 3px;
-  background: linear-gradient(to bottom, #3ABAB4, #2a9090);
-}
-/* Subtle top gloss */
-.back-header::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, rgba(255,255,255,.07), transparent 50%);
-  pointer-events: none;
-}
-
-.back-brand-name {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-weight: 900;
-  font-size: 15px;
-  color: var(--teal);
-  letter-spacing: 2px;
-  line-height: 1;
-}
-.back-brand-sub {
-  font-size: 7px;
-  color: rgba(58,186,180,.45);
-  letter-spacing: 2px;
-  margin-top: 2px;
-}
-
-.rfid-icon { opacity: .65; }
-
-/* Barcode section */
-.bc-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 16px 8px;
-  gap: 6px;
-}
-
-.bc-frame {
-  background: #fff;
-  border-radius: 8px;
-  padding: 12px 8px 8px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  box-shadow:
-    0 2px 10px rgba(0,0,0,.08),
-    0 1px 3px rgba(0,0,0,.06),
-    inset 0 1px 0 rgba(255,255,255,.95);
-  border: 1px solid rgba(0,0,0,.07);
-}
-
-/* Scan line wrapper */
-
-#barcodeContainer {
-  width: 100%;
-  height: 68px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#barcodeContainer svg { display: block; width: 100%; height: 100%; }
-
-.bc-num {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 3px;
-  color: #111;
-}
-.bc-caption {
-  font-size: 6.5px;
-  color: #b5b5b5;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-}
-
-/* Info rows */
-.info-section {
-  padding: 0 16px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-divider {
-  height: 1px;
-  background: linear-gradient(to right, transparent, rgba(0,0,0,.09), transparent);
-}
-
-.info-fields {
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-}
-
-.info-field { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-.info-key   { font-size: 6.5px; color: #b5b5b5; letter-spacing: 1.5px; text-transform: uppercase; }
-.info-val   { font-family: 'Space Mono', monospace; font-size: 9.5px; font-weight: 700; color: #1e1e1e; letter-spacing: .4px; }
-.info-link  { color: var(--teal); text-decoration: none; border-bottom: 1px solid rgba(58,186,180,.3); transition: color .2s, border-color .2s; }
-.info-link:hover { color: #52D4CE; border-color: rgba(58,186,180,.7); }
-
-/* Security notice */
-.security {
-  margin: 0 16px 8px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 9px;
-  background: rgba(27,42,107,.05);
-  border: 1px solid rgba(27,42,107,.1);
-  border-radius: 5px;
-}
-.security-txt {
-  font-size: 6.5px;
-  color: rgba(27,42,107,.5);
-  letter-spacing: .7px;
-  line-height: 1.4;
-}
-
-/* Magnetic stripe */
-.mag-stripe {
-  height: 38px;
-  background: linear-gradient(to bottom,
-    #141416 0%,
-    #0d0d0f 30%,
-    #0a0a0c 60%,
-    #111113 100%
-  );
-  border-radius: 0 0 18px 18px;
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-/* Three track lines */
-.mag-stripe::before {
-  content: '';
-  position: absolute;
-  top: 8px; left: 0; right: 0;
-  height: 6px;
-  background: repeating-linear-gradient(
-    to right,
-    #1e1e22 0px, #1e1e22 3px,
-    #161618 3px, #161618 6px
-  );
-  box-shadow: 0 8px 0 #1a1a1e, 0 16px 0 #181820;
-}
-/* Metallic sheen */
-.mag-stripe::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(115deg,
-    transparent 20%,
-    rgba(255,255,255,.04) 40%,
-    rgba(255,255,255,.07) 50%,
-    rgba(255,255,255,.04) 60%,
-    transparent 80%
-  );
-}
-
-/* ── HINTS ── */
-.hints {
-  position: relative;
-  z-index: 5;
-  margin-top: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-}
-
-.tap-hint {
-  font-size: 9px;
-  color: rgba(255,255,255,.22);
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  animation: hintPulse 3s ease-in-out infinite;
-}
-@keyframes hintPulse { 0%,100%{opacity:.22} 50%{opacity:.65} }
-
-.kb-hint { font-size: 8.5px; color: rgba(255,255,255,.1); letter-spacing: .5px; }
-.kb-hint kbd {
-  display: inline-block;
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.1);
-  border-bottom-width: 2px;
-  border-radius: 3px;
-  padding: 0 4px;
-  font-family: 'Space Mono', monospace;
-  font-size: 7px;
-}
-
-/* ── TOAST ── */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  background: rgba(12,12,15,.92);
-  border: 1px solid rgba(58,186,180,.3);
-  border-radius: 8px;
-  padding: 9px 18px;
-  font-size: 10px;
-  color: var(--teal);
-  letter-spacing: 1.5px;
-  opacity: 0;
-  transition: opacity .3s, transform .3s;
-  z-index: 200;
-  backdrop-filter: blur(10px);
-  white-space: nowrap;
-  pointer-events: none;
-}
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ── RESPONSIVE ── */
-@media (max-height: 680px) {
-  .lanyard-cord { height: 34px; }
-  .hints        { margin-top: 10px; }
-  .input-panel  { margin-bottom: 14px; }
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pico Norte — Badge Virtual</title>
+    <link rel="icon"
+          href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%233ABAB4'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='14' font-weight='900' fill='%231B2A6B' font-family='sans-serif'%3EPN%3C/text%3E%3C/svg%3E">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@700;900&display=swap"
+          rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --teal: #3ABAB4;
+            --navy: #1B2A6B;
+            --bg: #0f0f12;
+            --shadow-x: 0px;
+        }
+
+        body {
+            min-height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            font-family: 'Space Mono', monospace;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Ambient glow */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse 700px 480px at 50% 50%, rgba(58, 186, 180, .075) 0%, transparent 70%),
+            radial-gradient(ellipse 340px 260px at 12% 88%, rgba(27, 42, 107, .12) 0%, transparent 70%),
+            radial-gradient(ellipse 260px 200px at 88% 8%, rgba(27, 42, 107, .09) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Dot grid */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(rgba(58, 186, 180, .032) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(58, 186, 180, .032) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── INPUT PANEL ── */
+        .input-panel {
+            position: relative;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .input-eyebrow {
+            font-size: 8px;
+            letter-spacing: 4px;
+            color: rgba(58, 186, 180, .4);
+            text-transform: uppercase;
+        }
+
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .code-input {
+            background: rgba(255, 255, 255, .04);
+            border: 1.5px solid rgba(58, 186, 180, .28);
+            border-radius: 10px;
+            padding: 10px 36px 10px 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--teal);
+            text-transform: uppercase;
+            outline: none;
+            width: 196px;
+            transition: border-color .3s, box-shadow .3s, background .3s;
+        }
+
+        .code-input::placeholder {
+            color: rgba(58, 186, 180, .2);
+            letter-spacing: 1px;
+            font-size: 10px;
+            font-weight: 400;
+        }
+
+        .code-input:focus {
+            border-color: rgba(58, 186, 180, .65);
+            background: rgba(58, 186, 180, .05);
+            box-shadow: 0 0 0 3px rgba(58, 186, 180, .08), 0 0 18px rgba(58, 186, 180, .1);
+        }
+
+        .code-input.invalid {
+            border-color: rgba(220, 80, 80, .55);
+            color: #e05555;
+        }
+
+        .btn-clear {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: rgba(58, 186, 180, .3);
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            padding: 2px 3px;
+            display: none;
+            transition: color .2s;
+            font-family: monospace;
+        }
+
+        .btn-clear:hover {
+            color: rgba(58, 186, 180, .8);
+        }
+
+        .btn-clear.show {
+            display: block;
+        }
+
+        .btn-gen {
+            background: rgba(58, 186, 180, .11);
+            border: 1.5px solid rgba(58, 186, 180, .35);
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 2.5px;
+            color: var(--teal);
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all .25s;
+            white-space: nowrap;
+        }
+
+        .btn-gen:hover {
+            background: rgba(58, 186, 180, .22);
+            border-color: rgba(58, 186, 180, .65);
+            box-shadow: 0 0 14px rgba(58, 186, 180, .18);
+            transform: translateY(-1px);
+        }
+
+        .btn-gen:active {
+            transform: scale(.97);
+        }
+
+        .btn-dl {
+            background: none;
+            border: 1.5px solid rgba(58, 186, 180, .22);
+            border-radius: 10px;
+            padding: 10px 11px;
+            color: rgba(58, 186, 180, .45);
+            cursor: pointer;
+            transition: all .25s;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-dl:hover {
+            border-color: rgba(58, 186, 180, .6);
+            color: var(--teal);
+            box-shadow: 0 0 12px rgba(58, 186, 180, .14);
+            transform: translateY(-1px);
+        }
+
+        .btn-dl:active {
+            transform: scale(.97);
+        }
+
+        .input-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 248px;
+        }
+
+        .char-count {
+            font-size: 9px;
+            color: rgba(255, 255, 255, .18);
+            letter-spacing: 1px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-label {
+            font-size: 8px;
+            color: rgba(255, 255, 255, .2);
+            letter-spacing: 1px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, .1);
+            transition: background .3s, box-shadow .3s;
+        }
+
+        .status-dot.ok {
+            background: var(--teal);
+            box-shadow: 0 0 7px rgba(58, 186, 180, .65);
+        }
+
+        .status-dot.err {
+            background: #e05555;
+            box-shadow: 0 0 7px rgba(220, 80, 80, .5);
+        }
+
+        /* ── LANYARD ── */
+        .lanyard-assembly {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: -2px;
+        }
+
+        .lanyard-cord {
+            width: 14px;
+            height: 56px;
+            border-radius: 3px;
+            background: repeating-linear-gradient(
+                    to bottom,
+                    #1e3278 0px, #1e3278 2px,
+                    #162660 2px, #162660 4px
+            ),
+            linear-gradient(to right, rgba(255, 255, 255, .06) 0%, transparent 40%, rgba(0, 0, 0, .2) 100%);
+            background-blend-mode: normal;
+            box-shadow: inset 1px 0 0 rgba(255, 255, 255, .08),
+            inset -1px 0 0 rgba(0, 0, 0, .4),
+            0 2px 6px rgba(0, 0, 0, .4);
+        }
+
+        .lanyard-clip {
+            width: 22px;
+            height: 28px;
+        }
+
+        /* ── BADGE SCENE ── */
+        .scene {
+            width: 268px;
+            height: 438px;
+            perspective: 1400px;
+            cursor: pointer;
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Atmospheric glow behind badge */
+        .scene::before {
+            content: '';
+            position: absolute;
+            inset: -40px -20px;
+            background: radial-gradient(
+                    ellipse 85% 65% at 50% 46%,
+                    rgba(58, 186, 180, .055) 0%,
+                    rgba(27, 42, 107, .065) 42%,
+                    transparent 68%
+            );
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        /* Ground shadow — on scene, NOT on card.
+           filter on .card would break transform-style:preserve-3d,
+           making the back face invisible.
+           Two layers: tight contact shadow + wide ambient shadow.
+           --shadow-x shifts with tilt via JS. */
+        .scene::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 10%;
+            right: 10%;
+            height: 56px;
+            background: radial-gradient(ellipse 55% 40% at 50% 10%, rgba(0, 0, 0, .72) 0%, transparent 65%),
+            radial-gradient(ellipse 100% 80% at 50% 50%, rgba(0, 0, 0, .28) 0%, transparent 85%);
+            filter: blur(14px);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+            transform: translateX(var(--shadow-x, 0px));
+            transition: transform .55s cubic-bezier(.25, .46, .45, .94);
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            border-radius: 18px;
+            will-change: transform;
+            /* NO filter here — filter breaks preserve-3d and hides back face */
+        }
+
+        .card.flipping {
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .face {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            overflow: hidden;
+        }
+
+        /* ── FRONT FACE ── */
+        .front {
+            background: linear-gradient(160deg,
+            #52D4CE 0%,
+            #3ABAB4 30%,
+            #2ba4a0 58%,
+            #1f8880 80%,
+            #186e68 100%
+            );
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* position: absolute + inset: 0 inherited from .face — do NOT add position:relative here */
+            /* Rim light — simulates card edge catching ambient light */
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .28),
+            inset 1px 0 0 rgba(255, 255, 255, .10),
+            inset -1px 0 0 rgba(0, 0, 0, .15),
+            inset 0 -1px 0 rgba(0, 0, 0, .20);
+        }
+
+        /* Diagonal gloss stripe */
+        .front::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -20%;
+            width: 55%;
+            height: 180%;
+            background: linear-gradient(to bottom right, rgba(255, 255, 255, .13) 0%, transparent 55%);
+            transform: rotate(-8deg);
+            pointer-events: none;
+        }
+
+        /* Holographic shimmer (JS-controlled) */
+        .front-shimmer,
+        .back-shimmer {
+            position: absolute;
+            inset: 0;
+            border-radius: 18px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity .4s;
+            z-index: 2;
+        }
+
+        /* Holographic rainbow edge strip */
+        .holo-strip {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 7px;
+            height: 100px;
+            background: linear-gradient(180deg,
+            hsl(320, 100%, 60%) 0%,
+            hsl(30, 100%, 60%) 16%,
+            hsl(60, 100%, 58%) 33%,
+            hsl(120, 100%, 48%) 50%,
+            hsl(200, 100%, 60%) 66%,
+            hsl(265, 100%, 65%) 83%,
+            hsl(320, 100%, 60%) 100%
+            );
+            opacity: .32;
+            border-radius: 5px 0 0 5px;
+            box-shadow: -2px 0 8px rgba(58, 186, 180, .15);
+            animation: holoShift 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes holoShift {
+            0% {
+                opacity: .28;
+            }
+            100% {
+                opacity: .42;
+            }
+        }
+
+        .front-top {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 20px 0;
+            gap: 5px;
+        }
+
+        /* Lanyard hole */
+        .badge-hole {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #0c0c0f;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, .82),
+            inset 0 -1px 2px rgba(255, 255, 255, .07),
+            0 1px 3px rgba(0, 0, 0, .5);
+            position: relative;
+        }
+
+        .badge-eyelet {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, .07);
+        }
+
+        .badge-subtitle {
+            font-size: 7px;
+            color: rgba(27, 42, 107, .55);
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+        }
+
+        /* Logo */
+        .brand {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 6px;
+        }
+
+        .stacked {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1px;
+            filter: drop-shadow(0 3px 8px rgba(27, 42, 107, .22));
+        }
+
+        .stacked-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            line-height: 1;
+        }
+
+        .stacked-row span {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 60px;
+            letter-spacing: 6px;
+            color: var(--navy);
+            line-height: .88;
+        }
+
+        .brand-rule {
+            width: 88px;
+            height: 1.5px;
+            background: linear-gradient(to right, transparent, rgba(27, 42, 107, .4), transparent);
+            margin: 3px 0;
+        }
+
+        .n-circle {
+            width: 54px;
+            height: 54px;
+            border: 4px solid var(--navy);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, .18);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, .08), 0 2px 6px rgba(27, 42, 107, .18);
+        }
+
+        .n-circle span {
+            font-size: 32px !important;
+            letter-spacing: 0 !important;
+            color: #fff !important;
+            line-height: 1 !important;
+        }
+
+        /* Bottom section */
+        .badge-bottom {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px 22px;
+            gap: 10px;
+        }
+
+        .compass-svg {
+            width: 62px;
+            height: 62px;
+            opacity: .82;
+            filter: drop-shadow(0 2px 4px rgba(27, 42, 107, .28));
+        }
+
+        .badge-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .access-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(27, 42, 107, .17);
+            border: 1px solid rgba(27, 42, 107, .28);
+            border-radius: 20px;
+            padding: 3px 9px;
+        }
+
+        .access-led {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--navy);
+            opacity: .7;
+        }
+
+        .access-text {
+            font-size: 7px;
+            color: rgba(27, 42, 107, .75);
+            letter-spacing: 1.5px;
+        }
+
+        .badge-year {
+            font-size: 8px;
+            color: rgba(27, 42, 107, .45);
+            letter-spacing: 2px;
+        }
+
+        /* ── BACK FACE ── */
+        .back {
+            background: #f2f2ef;
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            /* position: absolute + inset: 0 inherited from .face — do NOT add position:relative here */
+            /* Rim light on back face */
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9),
+            inset 1px 0 0 rgba(255, 255, 255, .5),
+            inset -1px 0 0 rgba(0, 0, 0, .06),
+            inset 0 -1px 0 rgba(0, 0, 0, .08);
+        }
+
+        /* Fine grid texture */
+        .back::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(0, 0, 0, .024) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, .024) 1px, transparent 1px);
+            background-size: 10px 10px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Ghost watermark */
+        .back-watermark {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .back-watermark-txt {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 95px;
+            letter-spacing: 4px;
+            color: var(--navy);
+            opacity: .038;
+            transform: rotate(-24deg);
+            white-space: nowrap;
+        }
+
+        .back-inner {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            height: 100%;
+        }
+
+        /* Header */
+        .back-header {
+            background: linear-gradient(135deg, #1f3080 0%, #1B2A6B 50%, #141f52 100%);
+            padding: 13px 16px 11px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 18px 18px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Teal accent bar on left edge */
+        .back-header::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, #3ABAB4, #2a9090);
+        }
+
+        /* Subtle top gloss */
+        .back-header::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, .07), transparent 50%);
+            pointer-events: none;
+        }
+
+        .back-brand-name {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            font-size: 15px;
+            color: var(--teal);
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .back-brand-sub {
+            font-size: 7px;
+            color: rgba(58, 186, 180, .45);
+            letter-spacing: 2px;
+            margin-top: 2px;
+        }
+
+        .rfid-icon {
+            opacity: .65;
+        }
+
+        /* Barcode section */
+        .bc-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 16px 8px;
+            gap: 6px;
+        }
+
+        .bc-frame {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px 8px 8px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, .08),
+            0 1px 3px rgba(0, 0, 0, .06),
+            inset 0 1px 0 rgba(255, 255, 255, .95);
+            border: 1px solid rgba(0, 0, 0, .07);
+        }
+
+        /* Scan line wrapper */
+
+        #barcodeContainer {
+            width: 100%;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #barcodeContainer svg {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .bc-num {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #111;
+        }
+
+        .bc-caption {
+            font-size: 6.5px;
+            color: #b5b5b5;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        /* Info rows */
+        .info-section {
+            padding: 0 16px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .info-divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(0, 0, 0, .09), transparent);
+        }
+
+        .info-fields {
+            display: flex;
+            justify-content: space-between;
+            gap: 4px;
+        }
+
+        .info-field {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+        }
+
+        .info-key {
+            font-size: 6.5px;
+            color: #b5b5b5;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .info-val {
+            font-family: 'Space Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: #1e1e1e;
+            letter-spacing: .4px;
+        }
+
+        .info-link {
+            color: var(--teal);
+            text-decoration: none;
+            border-bottom: 1px solid rgba(58, 186, 180, .3);
+            transition: color .2s, border-color .2s;
+        }
+
+        .info-link:hover {
+            color: #52D4CE;
+            border-color: rgba(58, 186, 180, .7);
+        }
+
+        /* Security notice */
+        .security {
+            margin: 0 16px 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 9px;
+            background: rgba(27, 42, 107, .05);
+            border: 1px solid rgba(27, 42, 107, .1);
+            border-radius: 5px;
+        }
+
+        .security-txt {
+            font-size: 6.5px;
+            color: rgba(27, 42, 107, .5);
+            letter-spacing: .7px;
+            line-height: 1.4;
+        }
+
+        /* Magnetic stripe */
+        .mag-stripe {
+            height: 38px;
+            background: linear-gradient(to bottom,
+            #141416 0%,
+            #0d0d0f 30%,
+            #0a0a0c 60%,
+            #111113 100%
+            );
+            border-radius: 0 0 18px 18px;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        /* Three track lines */
+        .mag-stripe::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: repeating-linear-gradient(
+                    to right,
+                    #1e1e22 0px, #1e1e22 3px,
+                    #161618 3px, #161618 6px
+            );
+            box-shadow: 0 8px 0 #1a1a1e, 0 16px 0 #181820;
+        }
+
+        /* Metallic sheen */
+        .mag-stripe::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(115deg,
+            transparent 20%,
+            rgba(255, 255, 255, .04) 40%,
+            rgba(255, 255, 255, .07) 50%,
+            rgba(255, 255, 255, .04) 60%,
+            transparent 80%
+            );
+        }
+
+        /* ── HINTS ── */
+        .hints {
+            position: relative;
+            z-index: 5;
+            margin-top: 18px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tap-hint {
+            font-size: 9px;
+            color: rgba(255, 255, 255, .22);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            animation: hintPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes hintPulse {
+            0%, 100% {
+                opacity: .22
+            }
+            50% {
+                opacity: .65
+            }
+        }
+
+        .kb-hint {
+            font-size: 8.5px;
+            color: rgba(255, 255, 255, .1);
+            letter-spacing: .5px;
+        }
+
+        .kb-hint kbd {
+            display: inline-block;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-bottom-width: 2px;
+            border-radius: 3px;
+            padding: 0 4px;
+            font-family: 'Space Mono', monospace;
+            font-size: 7px;
+        }
+
+        /* ── TOAST ── */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            background: rgba(12, 12, 15, .92);
+            border: 1px solid rgba(58, 186, 180, .3);
+            border-radius: 8px;
+            padding: 9px 18px;
+            font-size: 10px;
+            color: var(--teal);
+            letter-spacing: 1.5px;
+            opacity: 0;
+            transition: opacity .3s, transform .3s;
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-height: 680px) {
+            .lanyard-cord {
+                height: 34px;
+            }
+
+            .hints {
+                margin-top: 10px;
+            }
+
+            .input-panel {
+                margin-bottom: 14px;
+            }
+        }
+    </style>
 </head>
 <body>
 
 <!-- ═══ INPUT PANEL ═══ -->
 <div class="input-panel">
-  <div class="input-eyebrow">Código de acceso</div>
-  <div class="input-row">
-    <div class="input-wrap">
-      <input
-        type="text"
-        id="codeInput"
-        class="code-input"
-        placeholder="Ej: PN0000000"
-        maxlength="20"
-        spellcheck="false"
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="characters"
-      >
-      <button class="btn-clear" id="btnClear" aria-label="Limpiar">×</button>
+    <div class="input-eyebrow">Código de acceso</div>
+    <div class="input-row">
+        <div class="input-wrap">
+            <input
+                    type="text"
+                    id="codeInput"
+                    class="code-input"
+                    placeholder="Ej: PN0000000"
+                    maxlength="20"
+                    spellcheck="false"
+                    autocomplete="off"
+                    autocorrect="off"
+                    autocapitalize="characters"
+            >
+            <button class="btn-clear" id="btnClear" aria-label="Limpiar">×</button>
+        </div>
+        <button class="btn-gen" id="btnGen">GEN</button>
+        <button class="btn-dl" id="btnDl" title="Descargar código de barras">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+                      stroke-linejoin="round"/>
+                <path d="M2 11h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+        </button>
     </div>
-    <button class="btn-gen" id="btnGen">GEN</button>
-    <button class="btn-dl" id="btnDl" title="Descargar código de barras">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-        <path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
-        <path d="M2 11h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      </svg>
-    </button>
-  </div>
-  <div class="input-meta">
-    <span class="char-count" id="charCount">9/20</span>
-    <div class="status-row">
-      <span class="status-label" id="statusLabel">LISTO</span>
-      <div class="status-dot ok" id="statusDot"></div>
+    <div class="input-meta">
+        <span class="char-count" id="charCount">9/20</span>
+        <div class="status-row">
+            <span class="status-label" id="statusLabel">LISTO</span>
+            <div class="status-dot ok" id="statusDot"></div>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- ═══ LANYARD ═══ -->
 <div class="lanyard-assembly">
-  <div class="lanyard-cord"></div>
-  <svg class="lanyard-clip" viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="0" width="14" height="20" rx="7" fill="#2a2a2a" stroke="#484848" stroke-width="1.5"/>
-    <rect x="8" y="3.5" width="6" height="13" rx="3" fill="#111"/>
-    <rect x="2" y="18" width="18" height="8" rx="2.5" fill="#363636" stroke="#484848" stroke-width="1"/>
-    <rect x="5" y="20" width="12" height="4" rx="1.5" fill="#222"/>
-    <circle cx="11" cy="22" r="1.5" fill="#555"/>
-  </svg>
+    <div class="lanyard-cord"></div>
+    <svg class="lanyard-clip" viewBox="0 0 22 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="0" width="14" height="20" rx="7" fill="#2a2a2a" stroke="#484848" stroke-width="1.5"/>
+        <rect x="8" y="3.5" width="6" height="13" rx="3" fill="#111"/>
+        <rect x="2" y="18" width="18" height="8" rx="2.5" fill="#363636" stroke="#484848" stroke-width="1"/>
+        <rect x="5" y="20" width="12" height="4" rx="1.5" fill="#222"/>
+        <circle cx="11" cy="22" r="1.5" fill="#555"/>
+    </svg>
 </div>
 
 <!-- ═══ BADGE ═══ -->
 <div class="scene" id="badge">
-  <div class="card" id="card">
+    <div class="card" id="card">
 
-    <!-- FRONT -->
-    <div class="face front">
-      <div class="front-shimmer" id="shimmer"></div>
-      <div class="holo-strip"></div>
+        <!-- FRONT -->
+        <div class="face front">
+            <div class="front-shimmer" id="shimmer"></div>
+            <div class="holo-strip"></div>
 
-      <div class="front-top">
-        <div class="badge-hole"><div class="badge-eyelet"></div></div>
-        <div class="badge-subtitle">Pico Norte · Acceso</div>
-      </div>
+            <div class="front-top">
+                <div class="badge-hole">
+                    <div class="badge-eyelet"></div>
+                </div>
+                <div class="badge-subtitle">Pico Norte · Acceso</div>
+            </div>
 
-      <div class="brand">
-        <div class="stacked">
-          <div class="stacked-row"><span>PIC</span></div>
-          <div class="brand-rule"></div>
-          <div class="stacked-row">
-            <span>O</span>
-            <div class="n-circle"><span>N</span></div>
-            <span>O</span>
-          </div>
-          <div class="brand-rule"></div>
-          <div class="stacked-row"><span>RTE</span></div>
+            <div class="brand">
+                <div class="stacked">
+                    <div class="stacked-row"><span>PIC</span></div>
+                    <div class="brand-rule"></div>
+                    <div class="stacked-row">
+                        <span>O</span>
+                        <div class="n-circle"><span>N</span></div>
+                        <span>O</span>
+                    </div>
+                    <div class="brand-rule"></div>
+                    <div class="stacked-row"><span>RTE</span></div>
+                </div>
+            </div>
+
+            <div class="badge-bottom">
+                <svg class="compass-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="36" stroke="#1B2A6B" stroke-width="3.5" stroke-dasharray="5 4"/>
+                    <circle cx="50" cy="50" r="28" stroke="#1B2A6B" stroke-width="1.5" opacity=".32"/>
+                    <line x1="50" y1="14" x2="50" y2="86" stroke="#1B2A6B" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="14" y1="50" x2="86" y2="50" stroke="#1B2A6B" stroke-width="2.5" stroke-linecap="round"/>
+                    <polygon points="50,15 45.5,33 54.5,33" fill="#1B2A6B"/>
+                    <polygon points="50,85 45.5,67 54.5,67" fill="#1B2A6B" opacity=".28"/>
+                    <circle cx="50" cy="50" r="4.5" fill="#1B2A6B"/>
+                    <text x="50" y="9" text-anchor="middle" font-size="9" fill="#1B2A6B"
+                          font-family="Barlow Condensed, sans-serif" font-weight="700" letter-spacing="1">N
+                    </text>
+                    <text x="50" y="97" text-anchor="middle" font-size="9" fill="#1B2A6B"
+                          font-family="Barlow Condensed, sans-serif" font-weight="700" opacity=".28">S
+                    </text>
+                </svg>
+                <div class="badge-footer">
+                    <div class="access-badge">
+                        <div class="access-led"></div>
+                        <span class="access-text">TEC</span>
+                    </div>
+                    <spanq class="badge-year">2026</spanq>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <div class="badge-bottom">
-        <svg class="compass-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="50" cy="50" r="36" stroke="#1B2A6B" stroke-width="3.5" stroke-dasharray="5 4"/>
-          <circle cx="50" cy="50" r="28" stroke="#1B2A6B" stroke-width="1.5" opacity=".32"/>
-          <line x1="50" y1="14" x2="50" y2="86" stroke="#1B2A6B" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="14" y1="50" x2="86" y2="50" stroke="#1B2A6B" stroke-width="2.5" stroke-linecap="round"/>
-          <polygon points="50,15 45.5,33 54.5,33" fill="#1B2A6B"/>
-          <polygon points="50,85 45.5,67 54.5,67" fill="#1B2A6B" opacity=".28"/>
-          <circle cx="50" cy="50" r="4.5" fill="#1B2A6B"/>
-          <text x="50" y="9" text-anchor="middle" font-size="9" fill="#1B2A6B"
-            font-family="Barlow Condensed, sans-serif" font-weight="700" letter-spacing="1">N</text>
-          <text x="50" y="97" text-anchor="middle" font-size="9" fill="#1B2A6B"
-            font-family="Barlow Condensed, sans-serif" font-weight="700" opacity=".28">S</text>
-        </svg>
-        <div class="badge-footer">
-          <div class="access-badge">
-            <div class="access-led"></div>
-            <span class="access-text">TEC</span>
-          </div>
-          <spanq class="badge-year">2026</spanq>
+        <!-- BACK -->
+        <div class="face back">
+            <div class="back-shimmer" id="backShimmer"></div>
+            <div class="back-watermark">
+                <div class="back-watermark-txt">PICO NORTE</div>
+            </div>
+            <div class="back-inner">
+
+                <div class="back-header">
+                    <div>
+                        <div class="back-brand-name">PICO NORTE</div>
+                        <div class="back-brand-sub">Credencial de Acceso</div>
+                    </div>
+                    <div class="rfid-icon">
+                        <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+                            <rect x="10" y="10" width="10" height="10" rx="2" fill="#3ABAB4"/>
+                            <path d="M6 6 C6 6 15 6 15 15 C15 24 24 24 24 24"
+                                  stroke="#3ABAB4" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".55"/>
+                            <path d="M3 3 C3 3 15 3 15 15 C15 27 27 27 27 27"
+                                  stroke="#3ABAB4" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".25"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="bc-section">
+                    <div class="bc-frame">
+                        <div id="barcodeContainer"></div>
+                        <div class="bc-num" id="barcodeLabel">—</div>
+                        <div class="bc-caption">· Escanear para verificar</div>
+                    </div>
+                </div>
+
+                <div class="info-section">
+                    <div class="info-divider"></div>
+                    <div class="info-fields">
+                        <div class="info-field">
+                            <span class="info-key">Proveedor</span>
+                            <a class="info-val info-link" href="https://www.instagram.com/cesar.xyz/" target="_blank"
+                               rel="noopener">@cesar.xyz</a>
+                        </div>
+                        <div class="info-field">
+                            <span class="info-key">Ref.</span>
+                            <span class="info-val">30087</span>
+                        </div>
+                        <div class="info-field">
+                            <span class="info-key">Versión</span>
+                            <span class="info-val">v2.1</span>
+                        </div>
+                    </div>
+                    <div class="info-divider"></div>
+                </div>
+
+                <div class="security">
+                    <svg width="11" height="12" viewBox="0 0 11 12" fill="none">
+                        <path d="M5.5 1L9.5 2.8V6C9.5 8.2 7.7 10 5.5 10.5C3.3 10 1.5 8.2 1.5 6V2.8L5.5 1Z"
+                              stroke="#1B2A6B" stroke-width="1" fill="rgba(27,42,107,.08)" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="security-txt">Este badge es para uso recreativo, no esta relacionado especificamente a la marca de pico norte.</span>
+                </div>
+
+                <div class="mag-stripe"></div>
+            </div>
         </div>
-      </div>
+
     </div>
-
-    <!-- BACK -->
-    <div class="face back">
-      <div class="back-shimmer" id="backShimmer"></div>
-      <div class="back-watermark"><div class="back-watermark-txt">PICO NORTE</div></div>
-      <div class="back-inner">
-
-        <div class="back-header">
-          <div>
-            <div class="back-brand-name">PICO NORTE</div>
-            <div class="back-brand-sub">Credencial de Acceso</div>
-          </div>
-          <div class="rfid-icon">
-            <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
-              <rect x="10" y="10" width="10" height="10" rx="2" fill="#3ABAB4"/>
-              <path d="M6 6 C6 6 15 6 15 15 C15 24 24 24 24 24"
-                stroke="#3ABAB4" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".55"/>
-              <path d="M3 3 C3 3 15 3 15 15 C15 27 27 27 27 27"
-                stroke="#3ABAB4" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".25"/>
-            </svg>
-          </div>
-        </div>
-
-        <div class="bc-section">
-          <div class="bc-frame">
-            <div id="barcodeContainer"></div>
-            <div class="bc-num" id="barcodeLabel">—</div>
-            <div class="bc-caption">· Escanear para verificar</div>
-          </div>
-        </div>
-
-        <div class="info-section">
-          <div class="info-divider"></div>
-          <div class="info-fields">
-            <div class="info-field">
-              <span class="info-key">Proveedor</span>
-              <a class="info-val info-link" href="https://www.instagram.com/cesar.xyz/" target="_blank" rel="noopener">@cesar.xyz</a>
-            </div>
-            <div class="info-field">
-              <span class="info-key">Ref.</span>
-              <span class="info-val">30087</span>
-            </div>
-            <div class="info-field">
-              <span class="info-key">Versión</span>
-              <span class="info-val">v2.1</span>
-            </div>
-          </div>
-          <div class="info-divider"></div>
-        </div>
-
-        <div class="security">
-          <svg width="11" height="12" viewBox="0 0 11 12" fill="none">
-            <path d="M5.5 1L9.5 2.8V6C9.5 8.2 7.7 10 5.5 10.5C3.3 10 1.5 8.2 1.5 6V2.8L5.5 1Z"
-              stroke="#1B2A6B" stroke-width="1" fill="rgba(27,42,107,.08)" stroke-linejoin="round"/>
-          </svg>
-          <span class="security-txt">Este badge es para uso recreativo, no esta relacionado especificamente a la marca de pico norte.</span>
-        </div>
-
-        <div class="mag-stripe"></div>
-      </div>
-    </div>
-
-  </div>
 </div>
 
 
 <div class="toast" id="toast"></div>
 
 <script>
-(function () {
-  'use strict';
+    (function () {
+        'use strict';
 
-  /* ════════════════════════════════════════════════
-     CODE 128 TYPE B — PURE JS ENCODER
-     Patterns verified per ISO/IEC 15417.
-     Indices 0-95  → printable ASCII (space=0, ~=94, DEL=95)
-     Index 103     → START A
-     Index 104     → START B  ← used here
-     Index 105     → START C
-     Stop symbol handled separately (7-element pattern).
-  ════════════════════════════════════════════════ */
-  var P = [
-    [2,1,2,2,2,2],[2,2,2,1,2,2],[2,2,2,2,2,1],[1,2,1,2,2,3],[1,2,1,3,2,2],
-    [1,3,1,2,2,2],[1,2,2,2,1,3],[1,2,2,3,1,2],[1,3,2,2,1,2],[2,2,1,2,1,3],
-    [2,2,1,3,1,2],[2,3,1,2,1,2],[1,1,2,2,3,2],[1,2,2,1,3,2],[1,2,2,2,3,1],
-    [1,1,3,2,2,2],[1,2,3,1,2,2],[1,2,3,2,2,1],[2,2,3,2,1,1],[2,2,1,1,3,2],
-    [2,2,1,2,3,1],[2,1,3,2,1,2],[2,2,3,1,1,2],[3,1,2,1,3,1],[3,1,1,2,2,2],
-    [3,2,1,1,2,2],[3,2,1,2,2,1],[3,1,2,2,1,2],[3,2,2,1,1,2],[3,2,2,2,1,1],
-    [2,1,2,1,2,3],[2,1,2,3,2,1],[2,3,2,1,2,1],[1,1,1,3,2,3],[1,3,1,1,2,3],
-    [1,3,1,3,2,1],[1,1,2,3,1,3],[1,3,2,1,1,3],[1,3,2,3,1,1],[2,1,1,3,1,3],
-    [2,3,1,1,1,3],[2,3,1,3,1,1],[1,1,2,1,3,3],[1,1,2,3,3,1],[1,3,2,1,3,1],
-    [1,1,3,1,2,3],[1,1,3,3,2,1],[1,3,3,1,2,1],[3,1,3,1,2,1],[2,1,1,3,3,1],
-    [2,3,1,1,3,1],[2,1,3,1,1,3],[2,1,3,3,1,1],[2,1,3,1,3,1],[3,1,1,1,2,3],
-    [3,1,1,3,2,1],[3,3,1,1,2,1],[3,1,2,1,1,3],[3,1,2,3,1,1],[3,3,2,1,1,1],
-    [3,1,4,1,1,1],[2,2,1,4,1,1],[4,3,1,1,1,1],[1,1,1,2,2,4],[1,1,1,4,2,2],
-    [1,2,1,1,2,4],[1,2,1,4,2,1],[1,4,1,1,2,2],[1,4,1,2,2,1],[1,1,2,2,1,4],
-    [1,1,2,4,1,2],[1,2,2,1,1,4],[1,2,2,4,1,1],[1,4,2,1,1,2],[1,4,2,2,1,1],
-    [2,4,1,2,1,1],[2,2,1,1,1,4],[4,1,3,1,1,1],[2,4,1,1,1,2],[1,3,4,1,1,1],
-    [1,1,1,2,4,2],[1,2,1,1,4,2],[1,2,1,2,4,1],[1,1,4,2,1,2],[1,2,4,1,1,2],
-    [1,2,4,2,1,1],[4,1,1,2,1,2],[4,2,1,1,1,2],[4,2,1,2,1,1],[2,1,2,1,4,1],
-    [2,1,4,1,2,1],[4,1,2,1,2,1],[1,1,1,1,4,3],[1,1,1,3,4,1],[1,3,1,1,4,1],
-    [1,1,4,1,1,3],[1,1,4,3,1,1],[4,1,1,1,1,3],[4,1,1,3,1,1],[1,1,3,1,4,1],
-    [1,1,4,1,3,1],[3,1,1,1,4,1],[4,1,1,1,3,1],[2,1,1,4,1,2],[2,1,1,2,1,4],
-    [2,1,1,2,3,2]
-  ];
-  var STOP_PAT = [2,3,3,1,1,1,2];
-  var START_B  = 104;
+        /* ════════════════════════════════════════════════
+           CODE 128 TYPE B — PURE JS ENCODER
+           Patterns verified per ISO/IEC 15417.
+           Indices 0-95  → printable ASCII (space=0, ~=94, DEL=95)
+           Index 103     → START A
+           Index 104     → START B  ← used here
+           Index 105     → START C
+           Stop symbol handled separately (7-element pattern).
+        ════════════════════════════════════════════════ */
+        var P = [
+            [2, 1, 2, 2, 2, 2], [2, 2, 2, 1, 2, 2], [2, 2, 2, 2, 2, 1], [1, 2, 1, 2, 2, 3], [1, 2, 1, 3, 2, 2],
+            [1, 3, 1, 2, 2, 2], [1, 2, 2, 2, 1, 3], [1, 2, 2, 3, 1, 2], [1, 3, 2, 2, 1, 2], [2, 2, 1, 2, 1, 3],
+            [2, 2, 1, 3, 1, 2], [2, 3, 1, 2, 1, 2], [1, 1, 2, 2, 3, 2], [1, 2, 2, 1, 3, 2], [1, 2, 2, 2, 3, 1],
+            [1, 1, 3, 2, 2, 2], [1, 2, 3, 1, 2, 2], [1, 2, 3, 2, 2, 1], [2, 2, 3, 2, 1, 1], [2, 2, 1, 1, 3, 2],
+            [2, 2, 1, 2, 3, 1], [2, 1, 3, 2, 1, 2], [2, 2, 3, 1, 1, 2], [3, 1, 2, 1, 3, 1], [3, 1, 1, 2, 2, 2],
+            [3, 2, 1, 1, 2, 2], [3, 2, 1, 2, 2, 1], [3, 1, 2, 2, 1, 2], [3, 2, 2, 1, 1, 2], [3, 2, 2, 2, 1, 1],
+            [2, 1, 2, 1, 2, 3], [2, 1, 2, 3, 2, 1], [2, 3, 2, 1, 2, 1], [1, 1, 1, 3, 2, 3], [1, 3, 1, 1, 2, 3],
+            [1, 3, 1, 3, 2, 1], [1, 1, 2, 3, 1, 3], [1, 3, 2, 1, 1, 3], [1, 3, 2, 3, 1, 1], [2, 1, 1, 3, 1, 3],
+            [2, 3, 1, 1, 1, 3], [2, 3, 1, 3, 1, 1], [1, 1, 2, 1, 3, 3], [1, 1, 2, 3, 3, 1], [1, 3, 2, 1, 3, 1],
+            [1, 1, 3, 1, 2, 3], [1, 1, 3, 3, 2, 1], [1, 3, 3, 1, 2, 1], [3, 1, 3, 1, 2, 1], [2, 1, 1, 3, 3, 1],
+            [2, 3, 1, 1, 3, 1], [2, 1, 3, 1, 1, 3], [2, 1, 3, 3, 1, 1], [2, 1, 3, 1, 3, 1], [3, 1, 1, 1, 2, 3],
+            [3, 1, 1, 3, 2, 1], [3, 3, 1, 1, 2, 1], [3, 1, 2, 1, 1, 3], [3, 1, 2, 3, 1, 1], [3, 3, 2, 1, 1, 1],
+            [3, 1, 4, 1, 1, 1], [2, 2, 1, 4, 1, 1], [4, 3, 1, 1, 1, 1], [1, 1, 1, 2, 2, 4], [1, 1, 1, 4, 2, 2],
+            [1, 2, 1, 1, 2, 4], [1, 2, 1, 4, 2, 1], [1, 4, 1, 1, 2, 2], [1, 4, 1, 2, 2, 1], [1, 1, 2, 2, 1, 4],
+            [1, 1, 2, 4, 1, 2], [1, 2, 2, 1, 1, 4], [1, 2, 2, 4, 1, 1], [1, 4, 2, 1, 1, 2], [1, 4, 2, 2, 1, 1],
+            [2, 4, 1, 2, 1, 1], [2, 2, 1, 1, 1, 4], [4, 1, 3, 1, 1, 1], [2, 4, 1, 1, 1, 2], [1, 3, 4, 1, 1, 1],
+            [1, 1, 1, 2, 4, 2], [1, 2, 1, 1, 4, 2], [1, 2, 1, 2, 4, 1], [1, 1, 4, 2, 1, 2], [1, 2, 4, 1, 1, 2],
+            [1, 2, 4, 2, 1, 1], [4, 1, 1, 2, 1, 2], [4, 2, 1, 1, 1, 2], [4, 2, 1, 2, 1, 1], [2, 1, 2, 1, 4, 1],
+            [2, 1, 4, 1, 2, 1], [4, 1, 2, 1, 2, 1], [1, 1, 1, 1, 4, 3], [1, 1, 1, 3, 4, 1], [1, 3, 1, 1, 4, 1],
+            [1, 1, 4, 1, 1, 3], [1, 1, 4, 3, 1, 1], [4, 1, 1, 1, 1, 3], [4, 1, 1, 3, 1, 1], [1, 1, 3, 1, 4, 1],
+            [1, 1, 4, 1, 3, 1], [3, 1, 1, 1, 4, 1], [4, 1, 1, 1, 3, 1], [2, 1, 1, 4, 1, 2], [2, 1, 1, 2, 1, 4],
+            [2, 1, 1, 2, 3, 2]
+        ];
+        var STOP_PAT = [2, 3, 3, 1, 1, 1, 2];
+        var START_B = 104;
 
-  function encode(text) {
-    var vals = [START_B];
-    for (var i = 0; i < text.length; i++) {
-      var c = text.charCodeAt(i) - 32;
-      if (c < 0 || c > 95) return null;
-      vals.push(c);
-    }
-    var chk = START_B;
-    for (var j = 1; j < vals.length; j++) chk += vals[j] * j;
-    vals.push(chk % 103);
-    return vals;
-  }
+        function encode(text) {
+            var vals = [START_B];
+            for (var i = 0; i < text.length; i++) {
+                var c = text.charCodeAt(i) - 32;
+                if (c < 0 || c > 95) return null;
+                vals.push(c);
+            }
+            var chk = START_B;
+            for (var j = 1; j < vals.length; j++) chk += vals[j] * j;
+            vals.push(chk % 103);
+            return vals;
+        }
 
-  function makeSVG(text) {
-    var vals = encode(text);
-    if (!vals) return null;
+        function makeSVG(text) {
+            var vals = encode(text);
+            if (!vals) return null;
 
-    var mods = [], i, v, p, w;
+            var mods = [], i, v, p, w;
 
-    for (i = 0; i < 10; i++) mods.push(0);           // leading quiet zone
+            for (i = 0; i < 10; i++) mods.push(0);           // leading quiet zone
 
-    for (v = 0; v < vals.length; v++) {
-      var pat = P[vals[v]];
-      for (p = 0; p < pat.length; p++) {
-        var isBar = (p % 2 === 0);
-        for (w = 0; w < pat[p]; w++) mods.push(isBar ? 1 : 0);
-      }
-    }
+            for (v = 0; v < vals.length; v++) {
+                var pat = P[vals[v]];
+                for (p = 0; p < pat.length; p++) {
+                    var isBar = (p % 2 === 0);
+                    for (w = 0; w < pat[p]; w++) mods.push(isBar ? 1 : 0);
+                }
+            }
 
-    for (p = 0; p < STOP_PAT.length; p++) {           // stop symbol
-      var isBar2 = (p % 2 === 0);
-      for (w = 0; w < STOP_PAT[p]; w++) mods.push(isBar2 ? 1 : 0);
-    }
+            for (p = 0; p < STOP_PAT.length; p++) {           // stop symbol
+                var isBar2 = (p % 2 === 0);
+                for (w = 0; w < STOP_PAT[p]; w++) mods.push(isBar2 ? 1 : 0);
+            }
 
-    for (i = 0; i < 10; i++) mods.push(0);            // trailing quiet zone
+            for (i = 0; i < 10; i++) mods.push(0);            // trailing quiet zone
 
-    var W = mods.length, H = 64;
-    var rects = '', s = -1;
-    for (i = 0; i <= mods.length; i++) {
-      if (i < mods.length && mods[i]) {
-        if (s < 0) s = i;
-      } else if (s >= 0) {
-        rects += '<rect x="' + s + '" y="0" width="' + (i - s) + '" height="' + H + '"/>';
-        s = -1;
-      }
-    }
-    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H
-      + '" preserveAspectRatio="none"><rect width="' + W + '" height="' + H
-      + '" fill="#fff"/><g fill="#111">' + rects + '</g></svg>';
-  }
+            var W = mods.length, H = 64;
+            var rects = '', s = -1;
+            for (i = 0; i <= mods.length; i++) {
+                if (i < mods.length && mods[i]) {
+                    if (s < 0) s = i;
+                } else if (s >= 0) {
+                    rects += '<rect x="' + s + '" y="0" width="' + (i - s) + '" height="' + H + '"/>';
+                    s = -1;
+                }
+            }
+            return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H
+                + '" preserveAspectRatio="none"><rect width="' + W + '" height="' + H
+                + '" fill="#fff"/><g fill="#111">' + rects + '</g></svg>';
+        }
 
-  /* ════════════════════════════════════════════════
-     DOM REFERENCES
-  ════════════════════════════════════════════════ */
-  var inp       = document.getElementById('codeInput');
-  var btnGen    = document.getElementById('btnGen');
-  var btnDl     = document.getElementById('btnDl');
-  var btnClear  = document.getElementById('btnClear');
-  var bcCont    = document.getElementById('barcodeContainer');
-  var bcLabel   = document.getElementById('barcodeLabel');
-  var badge     = document.getElementById('badge');
-  var card      = document.getElementById('card');
-  var shimmer     = document.getElementById('shimmer');
-  var backShimmer = document.getElementById('backShimmer');
-  var charCount = document.getElementById('charCount');
-  var statusDot = document.getElementById('statusDot');
-  var statusLbl = document.getElementById('statusLabel');
-  var toastEl   = document.getElementById('toast');
+        /* ════════════════════════════════════════════════
+           DOM REFERENCES
+        ════════════════════════════════════════════════ */
+        var inp = document.getElementById('codeInput');
+        var btnGen = document.getElementById('btnGen');
+        var btnDl = document.getElementById('btnDl');
+        var btnClear = document.getElementById('btnClear');
+        var bcCont = document.getElementById('barcodeContainer');
+        var bcLabel = document.getElementById('barcodeLabel');
+        var badge = document.getElementById('badge');
+        var card = document.getElementById('card');
+        var shimmer = document.getElementById('shimmer');
+        var backShimmer = document.getElementById('backShimmer');
+        var charCount = document.getElementById('charCount');
+        var statusDot = document.getElementById('statusDot');
+        var statusLbl = document.getElementById('statusLabel');
+        var toastEl = document.getElementById('toast');
 
-  /* ════════════════════════════════════════════════
-     GENERATE BARCODE
-  ════════════════════════════════════════════════ */
-  var debTimer;
+        /* ════════════════════════════════════════════════
+           GENERATE BARCODE
+        ════════════════════════════════════════════════ */
+        var debTimer;
 
-  function generate() {
-    var code = inp.value.trim().toUpperCase();
-    if (!code) {
-      bcCont.innerHTML = '<div style="font-size:9px;color:#ccc;letter-spacing:1.5px;text-align:center;padding:8px 0">SIN CÓDIGO</div>';
-      bcLabel.textContent = '—';
-      setStatus('idle');
-      return;
-    }
-    var svg = makeSVG(code);
-    if (svg) {
-      bcCont.innerHTML = svg;
-      bcLabel.textContent = code;
-      setStatus('ok');
-    } else {
-      bcCont.innerHTML = '<div style="font-size:9px;color:#e05555;letter-spacing:1px;text-align:center;padding:8px 0">CARÁCTER INVÁLIDO</div>';
-      bcLabel.textContent = '— — —';
-      setStatus('err');
-    }
-  }
+        function generate() {
+            var code = inp.value.trim().toUpperCase();
+            if (!code) {
+                bcCont.innerHTML = '<div style="font-size:9px;color:#ccc;letter-spacing:1.5px;text-align:center;padding:8px 0">SIN CÓDIGO</div>';
+                bcLabel.textContent = '—';
+                setStatus('idle');
+                return;
+            }
+            var svg = makeSVG(code);
+            if (svg) {
+                bcCont.innerHTML = svg;
+                bcLabel.textContent = code;
+                setStatus('ok');
+            } else {
+                bcCont.innerHTML = '<div style="font-size:9px;color:#e05555;letter-spacing:1px;text-align:center;padding:8px 0">CARÁCTER INVÁLIDO</div>';
+                bcLabel.textContent = '— — —';
+                setStatus('err');
+            }
+        }
 
-  function setStatus(s) {
-    inp.classList.toggle('invalid', s === 'err');
-    statusDot.className = 'status-dot' + (s === 'ok' ? ' ok' : s === 'err' ? ' err' : '');
-    statusLbl.textContent = s === 'ok' ? 'LISTO' : s === 'err' ? 'ERROR' : '';
-  }
+        function setStatus(s) {
+            inp.classList.toggle('invalid', s === 'err');
+            statusDot.className = 'status-dot' + (s === 'ok' ? ' ok' : s === 'err' ? ' err' : '');
+            statusLbl.textContent = s === 'ok' ? 'LISTO' : s === 'err' ? 'ERROR' : '';
+        }
 
-  function syncMeta() {
-    var len = inp.value.length;
-    charCount.textContent = len + '/20';
-    btnClear.classList.toggle('show', len > 0);
-  }
+        function syncMeta() {
+            var len = inp.value.length;
+            charCount.textContent = len + '/20';
+            btnClear.classList.toggle('show', len > 0);
+        }
 
-  inp.addEventListener('input', function () {
-    syncMeta();
-    clearTimeout(debTimer);
-    debTimer = setTimeout(generate, 180);
-  });
+        inp.addEventListener('input', function () {
+            syncMeta();
+            clearTimeout(debTimer);
+            debTimer = setTimeout(generate, 180);
+        });
 
-  inp.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); clearTimeout(debTimer); generate(); }
-    e.stopPropagation();
-  });
+        inp.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(debTimer);
+                generate();
+            }
+            e.stopPropagation();
+        });
 
-  inp.addEventListener('click', function (e) { e.stopPropagation(); });
+        inp.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
 
-  // Prevent link clicks from flipping the badge
-  var infoLink = document.querySelector('.info-link');
-  if (infoLink) infoLink.addEventListener('click', function (e) { e.stopPropagation(); });
+        // Prevent link clicks from flipping the badge
+        var infoLink = document.querySelector('.info-link');
+        if (infoLink) infoLink.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
 
-  btnClear.addEventListener('click', function (e) {
-    e.stopPropagation();
-    inp.value = '';
-    syncMeta();
-    generate();
-    inp.focus();
-  });
+        btnClear.addEventListener('click', function (e) {
+            e.stopPropagation();
+            inp.value = '';
+            syncMeta();
+            generate();
+            inp.focus();
+        });
 
-  btnGen.addEventListener('click', function (e) {
-    e.stopPropagation();
-    clearTimeout(debTimer);
-    generate();
-    showToast('Código generado');
-  });
+        btnGen.addEventListener('click', function (e) {
+            e.stopPropagation();
+            clearTimeout(debTimer);
+            generate();
+            showToast('Código generado');
+        });
 
-  btnDl.addEventListener('click', function (e) {
-    e.stopPropagation();
-    var code    = inp.value.trim().toUpperCase() || 'badge';
-    // Capture whichever face is currently showing
-    var faceEl  = isFlipped
-      ? document.querySelector('.face.back')
-      : document.querySelector('.face.front');
+        btnDl.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var code = inp.value.trim().toUpperCase() || 'badge';
+            // Capture whichever face is currently showing
+            var faceEl = isFlipped
+                ? document.querySelector('.face.back')
+                : document.querySelector('.face.front');
 
-    // Clone face off-screen without 3D transform so html2canvas can read it
-    var clone = faceEl.cloneNode(true);
-    clone.style.cssText = [
-      'position:fixed', 'top:-9999px', 'left:0',
-      'width:268px', 'height:438px', 'border-radius:18px',
-      'transform:none', 'backface-visibility:visible',
-      'overflow:hidden', 'pointer-events:none'
-    ].join(';');
-    document.body.appendChild(clone);
+            // Clone face off-screen without 3D transform so html2canvas can read it
+            var clone = faceEl.cloneNode(true);
+            clone.style.cssText = [
+                'position:fixed', 'top:-9999px', 'left:0',
+                'width:268px', 'height:438px', 'border-radius:18px',
+                'transform:none', 'backface-visibility:visible',
+                'overflow:hidden', 'pointer-events:none'
+            ].join(';');
+            document.body.appendChild(clone);
 
-    showToast('Generando imagen…');
+            showToast('Generando imagen…');
 
-    html2canvas(clone, {
-      scale: 3,
-      useCORS: true,
-      allowTaint: true,
-      width: 268,
-      height: 438,
-      backgroundColor: null
-    }).then(function (canvas) {
-      document.body.removeChild(clone);
-      var link = document.createElement('a');
-      link.download = code + '_badge.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
-      showToast('Badge descargado');
-    }).catch(function () {
-      document.body.removeChild(clone);
-      showToast('Error al exportar');
-    });
-  });
+            html2canvas(clone, {
+                scale: 3,
+                useCORS: true,
+                allowTaint: true,
+                width: 268,
+                height: 438,
+                backgroundColor: null
+            }).then(function (canvas) {
+                document.body.removeChild(clone);
+                var link = document.createElement('a');
+                link.download = code + '_badge.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('Badge descargado');
+            }).catch(function () {
+                document.body.removeChild(clone);
+                showToast('Error al exportar');
+            });
+        });
 
-  /* ════════════════════════════════════════════════
-     BADGE FLIP
-  ════════════════════════════════════════════════ */
-  var isFlipped  = false;
-  var isFlipping = false;
+        /* ════════════════════════════════════════════════
+           BADGE FLIP
+        ════════════════════════════════════════════════ */
+        var isFlipped = false;
+        var isFlipping = false;
 
-  function flip() {
-    if (isFlipping) return;
-    isFlipping = true;
+        function flip() {
+            if (isFlipping) return;
+            isFlipping = true;
 
-    // Halt tilt during flip
-    stopTilt();
-    tiltX = 0; tiltY = 0; targetX = 0; targetY = 0;
+            stopTilt();
+            tiltX = 0;
+            tiltY = 0;
+            targetX = 0;
+            targetY = 0;
 
-    var toY = isFlipped ? 0 : 180;
-    isFlipped = !isFlipped;
+            var baseY = isFlipped ? 180 : 0;
+            var toY = isFlipped ? 0 : 180;
+            isFlipped = !isFlipped;
 
-    card.style.transition = 'transform .85s cubic-bezier(.4,0,.2,1)';
-    card.style.transform  = 'rotateX(0deg) rotateY(' + toY + 'deg)';
+            // Snap to clean flat position with no transition
+            card.classList.remove('flipping');
+            card.style.transform = 'rotateY(' + baseY + 'deg)';
 
-    setTimeout(function () {
-      card.style.transition = 'none';
-      isFlipping = false;
-    }, 900);
-  }
+            // Double rAF: first frame commits the snap, second starts the transition
+            requestAnimationFrame(function () {
+                requestAnimationFrame(function () {
+                    card.classList.add('flipping');
+                    card.style.transform = 'rotateY(' + toY + 'deg)';
+                });
+            });
 
-  badge.addEventListener('click', flip);
+            card.addEventListener('transitionend', function done() {
+                card.removeEventListener('transitionend', done);
+                card.classList.remove('flipping');
+                isFlipping = false;
+            });
+            // Safety fallback in case transitionend never fires
+            setTimeout(function () {
+                isFlipping = false;
+            }, 600);
+        }
 
-  /* ════════════════════════════════════════════════
-     TILT / PARALLAX (mouse hover)
-  ════════════════════════════════════════════════ */
-  var tiltX = 0, tiltY = 0;
-  var targetX = 0, targetY = 0;
-  var raf = null, hovering = false;
+        badge.addEventListener('click', flip);
 
-  function lerp(a, b, t) { return a + (b - a) * t; }
+        /* ════════════════════════════════════════════════
+           TILT / PARALLAX (mouse hover)
+        ════════════════════════════════════════════════ */
+        var tiltX = 0, tiltY = 0;
+        var targetX = 0, targetY = 0;
+        var raf = null, hovering = false;
 
-  function tiltLoop() {
-    tiltX = lerp(tiltX, targetX, .09);
-    tiltY = lerp(tiltY, targetY, .09);
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
 
-    var baseY = isFlipped ? 180 : 0;
-    card.style.transform = 'rotateX(' + tiltX + 'deg) rotateY(' + (baseY + tiltY) + 'deg)';
+        function tiltLoop() {
+            tiltX = lerp(tiltX, targetX, .09);
+            tiltY = lerp(tiltY, targetY, .09);
 
-    // Shimmer follows tilt angle — white on front, navy-tinted on back
-    var gx  = 22 + tiltY * 2.4;
-    var ang = (108 + tiltY) + 'deg,';
-    shimmer.style.background =
-      'linear-gradient(' + ang +
-      'transparent ' + gx + '%,' +
-      'rgba(255,255,255,.24) ' + (gx + 9) + '%,' +
-      'rgba(255,255,255,.07) ' + (gx + 15) + '%,' +
-      'transparent ' + (gx + 30) + '%)';
-    // Back face shimmer: navy-tinted, visible on cream background
-    backShimmer.style.background =
-      'linear-gradient(' + ang +
-      'transparent ' + gx + '%,' +
-      'rgba(27,42,107,.09) ' + (gx + 9) + '%,' +
-      'rgba(27,42,107,.04) ' + (gx + 15) + '%,' +
-      'transparent ' + (gx + 30) + '%)';
+            var baseY = isFlipped ? 180 : 0;
+            card.style.transform = 'rotateX(' + tiltX + 'deg) rotateY(' + (baseY + tiltY) + 'deg)';
 
-    // Shadow drifts opposite to tilt — simulates directional key light
-    badge.style.setProperty('--shadow-x', (tiltY * 1.2).toFixed(2) + 'px');
+            // Shimmer follows tilt angle — white on front, navy-tinted on back
+            var gx = 22 + tiltY * 2.4;
+            var ang = (108 + tiltY) + 'deg,';
+            shimmer.style.background =
+                'linear-gradient(' + ang +
+                'transparent ' + gx + '%,' +
+                'rgba(255,255,255,.24) ' + (gx + 9) + '%,' +
+                'rgba(255,255,255,.07) ' + (gx + 15) + '%,' +
+                'transparent ' + (gx + 30) + '%)';
+            // Back face shimmer: navy-tinted, visible on cream background
+            backShimmer.style.background =
+                'linear-gradient(' + ang +
+                'transparent ' + gx + '%,' +
+                'rgba(27,42,107,.09) ' + (gx + 9) + '%,' +
+                'rgba(27,42,107,.04) ' + (gx + 15) + '%,' +
+                'transparent ' + (gx + 30) + '%)';
 
-    raf = requestAnimationFrame(tiltLoop);
-  }
+            // Shadow drifts opposite to tilt — simulates directional key light
+            badge.style.setProperty('--shadow-x', (tiltY * 1.2).toFixed(2) + 'px');
 
-  function stopTilt() {
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
-    hovering = false;
-    shimmer.style.opacity     = '0';
-    backShimmer.style.opacity = '0';
-    badge.style.setProperty('--shadow-x', '0px');
-  }
+            raf = requestAnimationFrame(tiltLoop);
+        }
 
-  badge.addEventListener('mousemove', function (e) {
-    if (isFlipping) return;
-    var r  = badge.getBoundingClientRect();
-    var nx = (e.clientX - r.left)  / r.width  - 0.5;
-    var ny = (e.clientY - r.top)   / r.height - 0.5;
-    targetX = ny * -14;
-    targetY = nx * 14;
-    // Show shimmer on whichever face is currently visible
-    shimmer.style.opacity     = isFlipped ? '0' : '1';
-    backShimmer.style.opacity = isFlipped ? '1' : '0';
-    if (!hovering) {
-      hovering = true;
-      card.style.transition = 'none';
-      if (!raf) raf = requestAnimationFrame(tiltLoop);
-    }
-  });
+        function stopTilt() {
+            if (raf) {
+                cancelAnimationFrame(raf);
+                raf = null;
+            }
+            hovering = false;
+            shimmer.style.opacity = '0';
+            backShimmer.style.opacity = '0';
+            badge.style.setProperty('--shadow-x', '0px');
+        }
 
-  badge.addEventListener('mouseleave', function () {
-    if (raf) { cancelAnimationFrame(raf); raf = null; }
-    hovering = false;
-    targetX = 0; targetY = 0;
-    shimmer.style.opacity     = '0';
-    backShimmer.style.opacity = '0';
-    badge.style.setProperty('--shadow-x', '0px');
-    var baseY = isFlipped ? 180 : 0;
-    card.style.transition = 'transform .55s cubic-bezier(.25,.46,.45,.94)';
-    card.style.transform  = 'rotateX(0deg) rotateY(' + baseY + 'deg)';
-    tiltX = 0; tiltY = 0;
-    setTimeout(function () {
-      if (!hovering && !isFlipping) card.style.transition = 'none';
-    }, 600);
-  });
+        badge.addEventListener('mousemove', function (e) {
+            if (isFlipping) return;
+            var r = badge.getBoundingClientRect();
+            var nx = (e.clientX - r.left) / r.width - 0.5;
+            var ny = (e.clientY - r.top) / r.height - 0.5;
+            targetX = ny * -14;
+            targetY = nx * 14;
+            // Show shimmer on whichever face is currently visible
+            shimmer.style.opacity = isFlipped ? '0' : '1';
+            backShimmer.style.opacity = isFlipped ? '1' : '0';
+            if (!hovering) {
+                hovering = true;
+                card.style.transition = 'none';
+                if (!raf) raf = requestAnimationFrame(tiltLoop);
+            }
+        });
 
-  /* ════════════════════════════════════════════════
-     TOUCH SUPPORT
-  ════════════════════════════════════════════════ */
-  var tx0 = 0, ty0 = 0, moved = false;
-  badge.addEventListener('touchstart', function (e) {
-    tx0 = e.touches[0].clientX;
-    ty0 = e.touches[0].clientY;
-    moved = false;
-  }, { passive: true });
-  badge.addEventListener('touchmove', function (e) {
-    if (Math.abs(e.touches[0].clientX - tx0) > 6 ||
-        Math.abs(e.touches[0].clientY - ty0) > 6) moved = true;
-  }, { passive: true });
-  badge.addEventListener('touchend', function (e) {
-    if (!moved) { e.preventDefault(); flip(); }
-  });
+        badge.addEventListener('mouseleave', function () {
+            if (raf) {
+                cancelAnimationFrame(raf);
+                raf = null;
+            }
+            hovering = false;
+            targetX = 0;
+            targetY = 0;
+            shimmer.style.opacity = '0';
+            backShimmer.style.opacity = '0';
+            badge.style.setProperty('--shadow-x', '0px');
+            tiltX = 0;
+            tiltY = 0;
+            // Do NOT touch card transform if a flip is in progress —
+            // otherwise mouseleave overrides the flip animation mid-way.
+            if (isFlipping) return;
+            var baseY = isFlipped ? 180 : 0;
+            card.style.transform = 'rotateY(' + baseY + 'deg)';
+        });
 
-  /* ════════════════════════════════════════════════
-     TOAST
-  ════════════════════════════════════════════════ */
-  var toastTimer;
-  function showToast(msg) {
-    clearTimeout(toastTimer);
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2000);
-  }
+        /* ════════════════════════════════════════════════
+           TOUCH SUPPORT
+        ════════════════════════════════════════════════ */
+        var tx0 = 0, ty0 = 0, moved = false;
+        badge.addEventListener('touchstart', function (e) {
+            tx0 = e.touches[0].clientX;
+            ty0 = e.touches[0].clientY;
+            moved = false;
+        }, {passive: true});
+        badge.addEventListener('touchmove', function (e) {
+            if (Math.abs(e.touches[0].clientX - tx0) > 6 ||
+                Math.abs(e.touches[0].clientY - ty0) > 6) moved = true;
+        }, {passive: true});
+        badge.addEventListener('touchend', function (e) {
+            if (!moved) {
+                e.preventDefault();
+                flip();
+            }
+        });
 
-  /* ════════════════════════════════════════════════
-     INIT — read ?code= from URL, no hardcoded default
-  ════════════════════════════════════════════════ */
-  var urlCode = new URLSearchParams(window.location.search).get('code');
-  if (urlCode) {
-    inp.value = urlCode.toUpperCase().slice(0, 20);
-  }
-  syncMeta();
-  generate();
+        /* ════════════════════════════════════════════════
+           TOAST
+        ════════════════════════════════════════════════ */
+        var toastTimer;
 
-})();
+        function showToast(msg) {
+            clearTimeout(toastTimer);
+            toastEl.textContent = msg;
+            toastEl.classList.add('show');
+            toastTimer = setTimeout(function () {
+                toastEl.classList.remove('show');
+            }, 2000);
+        }
+
+        /* ════════════════════════════════════════════════
+           INIT — read ?code= from URL, no hardcoded default
+        ════════════════════════════════════════════════ */
+        var urlCode = new URLSearchParams(window.location.search).get('code');
+        if (urlCode) {
+            inp.value = urlCode.toUpperCase().slice(0, 20);
+        }
+        syncMeta();
+        generate();
+
+    })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </body>
 </html>
 
